@@ -1,0 +1,48 @@
+{
+  "name": "create-corniflex",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Scaffold a new Vite + TypeScript project from Pierre's ideal repository architecture.",
+  "author": "Pierre Demessence <pierre.demessence@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pierre-Demessence/create-corniflex.git"
+  },
+  "keywords": [
+    "create",
+    "scaffold",
+    "template",
+    "vite",
+    "typescript"
+  ],
+  "bin": {
+    "create-corniflex": "./dist/index.js"
+  },
+  "files": [
+    "dist/",
+    "template/"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsup",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "prepare": "npm run build",
+    "test": "tsx --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.7.0",
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^8.2.0",
+    "@types/node": "^25.6.0",
+    "eslint": "^10.2.1",
+    "tsup": "^8.3.5",
+    "tsx": "^4.20.0",
+    "typescript": "^6.0.3"
+  }
+}
