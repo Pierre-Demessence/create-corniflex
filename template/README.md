@@ -23,4 +23,4 @@ npm run dev
 | `npm run test:watch`    | Run Vitest in watch mode.             |
 | `npm run test:coverage` | Run Vitest with coverage.             |
 
-See [docs/INDEX.md](docs/INDEX.md) for project documentation.
+Project docs: [docs/backlog.md](docs/backlog.md) and [docs/decisions.md](docs/decisions.md). Agent notes: [AGENTS.md](AGENTS.md).
