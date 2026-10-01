@@ -13,3 +13,6 @@
 - Import from `@/…` instead of long relative paths.
 - Co-locate tests with source as `<name>.test.ts`.
 - 2-space indent, single quotes, semicolons (enforced by ESLint).
+- Object and interface keys are sorted: `id` and `name` first, then the rest
+  alphabetically. Imports are sorted as one flat list (no blank lines between
+  groups). In all sorted lists, a comment line starts a new partition.

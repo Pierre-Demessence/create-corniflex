@@ -2,7 +2,8 @@
 
 Scaffold a new **Vite + TypeScript** project from a single command, pre-wired
 with the tooling used across these packages: Vite 8, TypeScript (strict),
-Vitest, `@antfu/eslint-config` (flat config + perfectionist sorting), a `@/`
+Vitest, `@antfu/eslint-config` (flat config + custom perfectionist sorting +
+`import-x/no-unresolved`), a `@/`
 path alias, `brand.json` → `%APP_NAME%` HTML injection, and the standard
 `.vscode` / `.github` / `docs` / `AGENTS.md` scaffolding.
 

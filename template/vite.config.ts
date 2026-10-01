@@ -1,6 +1,5 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-
 import { defineConfig } from 'vite';
 
 const brand = JSON.parse(readFileSync(resolve(__dirname, 'brand.json'), 'utf8')) as { name: string };
