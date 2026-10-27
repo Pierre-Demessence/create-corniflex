@@ -72,3 +72,4 @@ Each item: implement, run `npm run lint`, `npm test` and the smoke runs it names
 - [ ] **B6 Frameworks** (not before `template-refresh` T2 is committed; otherwise skipped). As in Design; generator tests; smoke for npm with each framework and pnpm with React; CI matrix entries; generator README; repo `AGENTS.md`.
   Visible after: `--framework react` or `preact` (or the new question) makes a ready React or Preact project.
   Needs you: run `npm run dev` in a React and a Preact project, edit `App.tsx` and check the page updates without losing the counter (at the end).
+  Skipped: `template-refresh` T2 (antfu 10) is not committed and cannot be before 2026-10-30; the React and Preact lint plugins (`@eslint-react` 5) need antfu 10. Run `/run-plan` for this item again after T2 is committed.
