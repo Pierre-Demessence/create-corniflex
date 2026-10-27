@@ -2,7 +2,7 @@
 
 **Goal:** a project made with `create-corniflex` starts on current tool versions, with less config to keep in sync, a CI that proves the template still works, and docs that follow the user's current rules.
 
-**Status:** decisions 1–3 approved as recommended; T1 done; next T3 (T2 waits for 2026-10-30). Source: hand-off in `I:/Dev/AI/.agents/docs/plans/instructions-review.md`. Versions checked with `npm view` and `gh api` on 2026-10-27.
+**Status:** decisions 1–3 approved as recommended; T1 and T3 done; next T4 (T2 waits for 2026-10-30). Source: hand-off in `I:/Dev/AI/.agents/docs/plans/instructions-review.md`. Versions checked with `npm view` and `gh api` on 2026-10-27.
 
 ## Verified versions
 
@@ -54,7 +54,7 @@ Each item: edit, scaffold into a scratch folder and run install, lint, test, bui
 - [ ] **T2 antfu 10** (not before 2026-10-30). Bump to `^10.0.0`, re-run `lint:fix` on the template files so they satisfy `reasonable-newline`, confirm `npm view @antfu/eslint-config@10.0.0 time` is at least 7 days old first. If you want it sooner, use `^9.5.1` and add a backlog entry.
   Visible after: new projects lint with ESLint config 10.
   Needs you: nothing.
-- [ ] **T3 ESLint trim.** Design "ESLint"; also the generator `README.md` line naming `import-x`.
+- [x] **T3 ESLint trim.** Design "ESLint"; also the generator `README.md` line naming `import-x`.
   Visible after: no import resolver in new projects; objects are no longer reordered by `lint:fix`.
   Needs you: nothing.
 - [ ] **T4 Single alias.** Design "Alias"; `example.test.ts` imports via `@/`.

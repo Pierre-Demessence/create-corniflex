@@ -24,10 +24,9 @@ Run lint, test and build before considering work done.
 - Import from `@/…` instead of long relative paths.
 - Co-locate tests with source as `<name>.test.ts`.
 - 2-space indent, single quotes, semicolons (enforced by ESLint).
-- ESLint (`@antfu/eslint-config`) sorts object and interface keys with `id` and
-  `name` first, and imports as one flat list; a comment line starts a new
-  sorting partition. Tests must not depend on object key order.
-- `import-x/no-unresolved` checks every import, including the `@/` alias.
+- ESLint (`@antfu/eslint-config`) sorts interface members with `id` and `name`
+  first, and imports as one flat list; a comment line starts a new sorting
+  partition.
 
 ## Invariants
 
