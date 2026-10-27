@@ -2,7 +2,7 @@
 
 **Goal:** a project made with `create-corniflex` starts on current tool versions, with less config to keep in sync, a CI that proves the template still works, and docs that follow the user's current rules.
 
-**Status:** decisions 1–3 approved as recommended; T1, T3 and T4 done; next T5 (T2 waits for 2026-10-30). Source: hand-off in `I:/Dev/AI/.agents/docs/plans/instructions-review.md`. Versions checked with `npm view` and `gh api` on 2026-10-27.
+**Status:** decisions 1–3 approved as recommended; T1, T3, T4 and T5 done; next T6 (T2 waits for 2026-10-30). Source: hand-off in `I:/Dev/AI/.agents/docs/plans/instructions-review.md`. Versions checked with `npm view` and `gh api` on 2026-10-27.
 
 ## Verified versions
 
@@ -60,7 +60,7 @@ Each item: edit, scaffold into a scratch folder and run install, lint, test, bui
 - [x] **T4 Single alias.** Design "Alias"; `example.test.ts` imports via `@/`.
   Visible after: one fewer config file in new projects.
   Needs you: nothing.
-- [ ] **T5 Small cleanups.** `noUncheckedIndexedAccess` in `tsconfig.json`; delete `template/CLAUDE.md`; drop `eslint.useFlatConfig` from `.vscode/settings.json`; delete this repo's `docs/plans/done/` (its content stays in git history).
+- [x] **T5 Small cleanups.** `noUncheckedIndexedAccess` in `tsconfig.json`; delete `template/CLAUDE.md`; drop `eslint.useFlatConfig` from `.vscode/settings.json`; delete this repo's `docs/plans/done/` (its content stays in git history).
   Visible after: stricter array indexing errors in new projects.
   Needs you: nothing.
 - [ ] **T6 Package manager and pins.** Design "Package manager" and "Pins"; `src/index.ts` choices per decision 3; generator tests for criteria 2 and 4.

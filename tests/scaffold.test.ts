@@ -47,3 +47,21 @@ test('copyTemplate renders project files with replacements', () => {
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('copyTemplate drops obsolete files and settings and checks indexed access', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'corniflex-'));
+  try {
+    copyTemplate(templateDir, dir);
+
+    assert.ok(!existsSync(join(dir, 'CLAUDE.md')), 'Claude Code reads AGENTS.md directly');
+
+    const settings = JSON.parse(readFileSync(join(dir, '.vscode', 'settings.json'), 'utf8')) as Record<string, unknown>;
+    assert.ok(!('eslint.useFlatConfig' in settings), 'flat config is the ESLint extension default');
+
+    const tsconfig = JSON.parse(readFileSync(join(dir, 'tsconfig.json'), 'utf8')) as { compilerOptions: Record<string, unknown> };
+    assert.equal(tsconfig.compilerOptions.noUncheckedIndexedAccess, true);
+  }
+  finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
