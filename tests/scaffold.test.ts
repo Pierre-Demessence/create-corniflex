@@ -135,6 +135,28 @@ test('copyTemplate drops obsolete files and settings and checks indexed access',
   }
 });
 
+test('copyTemplate scaffolds LF line endings, editor settings and theme tokens', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'corniflex-'));
+  try {
+    copyTemplate(templateDir, dir);
+
+    assert.equal(readFileSync(join(dir, '.gitattributes'), 'utf8').trim(), '* text=auto eol=lf');
+
+    const settings = JSON.parse(readFileSync(join(dir, '.vscode', 'settings.json'), 'utf8')) as Record<string, unknown>;
+    assert.equal(settings['editor.formatOnSave'], false);
+    assert.deepEqual(settings['editor.codeActionsOnSave'], { 'source.fixAll.eslint': 'explicit', 'source.organizeImports': 'never' });
+    assert.ok(Array.isArray(settings['eslint.validate']), 'eslint.validate lists the linted languages');
+
+    const css = readFileSync(join(dir, 'src', 'style.css'), 'utf8');
+    assert.match(css, /color-scheme: light dark/);
+    assert.match(css, /@media \(prefers-color-scheme: dark\)/);
+    assert.match(readFileSync(join(dir, 'src', 'main.ts'), 'utf8'), /import '\.\/style\.css';/);
+  }
+  finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('copyTemplate scaffolds docs that follow the ID conventions', () => {
   const dir = mkdtempSync(join(tmpdir(), 'corniflex-'));
   try {

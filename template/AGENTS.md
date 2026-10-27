@@ -14,6 +14,8 @@ Run lint, test and build before considering work done.
 ## Layout
 
 - `src/main.ts` — entry point; mounts into `#app`.
+- `src/style.css` — global styles and color tokens (`--color-bg`, `--color-text`,
+  `--color-muted`, `--color-accent`), light and dark.
 - `src/example.ts` / `src/example.test.ts` — sample module and test; replace them.
 - `index.html` — Vite HTML entry; `%APP_NAME%` is replaced from `brand.json` at build time.
 - `docs/` — `backlog.md` (everything not done, `B<n>` IDs), `decisions.md`
@@ -22,6 +24,8 @@ Run lint, test and build before considering work done.
 
 ## Conventions
 
+- Colors come from the tokens in `src/style.css`, which follow the OS dark mode;
+  never hard-code a color.
 - Import from `@/…` instead of long relative paths.
 - Co-locate tests with source as `<name>.test.ts`.
 {{AGENTS_BROWSER_TESTS}}
