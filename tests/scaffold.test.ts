@@ -1,12 +1,12 @@
 import type { PackageManager } from '../src/scaffold.ts';
 import { strict as assert } from 'node:assert';
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { test } from 'node:test';
 
 import { fileURLToPath } from 'node:url';
-import { addBrowserTests, browserTestReplacements, copyTemplate, isClassicYarn, isDirEmpty, PACKAGE_MANAGERS, packageManagerReplacements, pinPackageManager, slugify, toTitleCase, writeYarnConfig } from '../src/scaffold.ts';
+import { addBrowserTests, browserTestReplacements, copyTemplate, describeFiles, existingTemplateFiles, isClassicYarn, isDirEmpty, PACKAGE_MANAGERS, packageManagerReplacements, pinPackageManager, slugify, toTitleCase, writeYarnConfig } from '../src/scaffold.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const templateDir = resolve(here, '../template');
@@ -26,6 +26,45 @@ test('toTitleCase humanizes a slug', () => {
 
 test('isDirEmpty treats missing dirs as empty', () => {
   assert.equal(isDirEmpty(join(tmpdir(), 'corniflex-does-not-exist-xyz')), true);
+});
+
+test('isDirEmpty ignores a lone .git folder but not other entries', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'corniflex-'));
+  try {
+    assert.equal(isDirEmpty(dir), true);
+    mkdirSync(join(dir, '.git'));
+    assert.equal(isDirEmpty(dir), true);
+    writeFileSync(join(dir, 'README.md'), '');
+    assert.equal(isDirEmpty(dir), false);
+  }
+  finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('existingTemplateFiles lists the files a scaffold would overwrite', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'corniflex-'));
+  try {
+    writeFileSync(join(dir, 'package.json'), '{}');
+    writeFileSync(join(dir, '.gitignore'), '');
+    writeFileSync(join(dir, 'notes.txt'), '');
+    assert.deepEqual(existingTemplateFiles([templateDir], dir), ['.gitignore', 'package.json']);
+    assert.ok(!existingTemplateFiles([templateDir], dir).includes('_gitignore'));
+
+    mkdirSync(join(dir, 'src'));
+    writeFileSync(join(dir, 'src', 'example.browser.test.ts'), '');
+    assert.ok(!existingTemplateFiles([templateDir], dir).includes('src/example.browser.test.ts'));
+    assert.ok(existingTemplateFiles([templateDir, browserTestsDir], dir).includes('src/example.browser.test.ts'));
+  }
+  finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('describeFiles names up to ten files, then counts the rest', () => {
+  assert.equal(describeFiles(['a', 'b']), 'a, b');
+  const files = Array.from({ length: 13 }, (_, i) => `f${i}`);
+  assert.equal(describeFiles(files), 'f0, f1, f2, f3, f4, f5, f6, f7, f8, f9 and 3 more');
 });
 
 test('copyTemplate renders project files with replacements', () => {

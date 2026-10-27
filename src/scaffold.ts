@@ -152,10 +152,31 @@ export function pinPackageManager(targetDir: string, pm: PackageManager, version
   writeFileSync(file, `${JSON.stringify(pinned, null, 2)}\n`);
 }
 
+// A `.git` folder alone (a freshly cloned empty repository) does not count.
 export function isDirEmpty(dir: string): boolean {
   if (!existsSync(dir))
     return true;
-  return readdirSync(dir).length === 0;
+  return readdirSync(dir).every(name => name === '.git');
+}
+
+// The files the sources would write that already exist in `targetDir`, as
+// sorted paths relative to it.
+export function existingTemplateFiles(sourceDirs: string[], targetDir: string): string[] {
+  const existing = new Set<string>();
+  for (const sourceDir of sourceDirs) {
+    for (const sourceFile of walk(sourceDir)) {
+      const rel = targetRelativePath(sourceDir, sourceFile);
+      if (existsSync(join(targetDir, rel)))
+        existing.add(rel);
+    }
+  }
+  return [...existing].toSorted();
+}
+
+// Names up to `limit` files, then counts the rest.
+export function describeFiles(files: string[], limit = 10): string {
+  const shown = files.slice(0, limit).join(', ');
+  return files.length > limit ? `${shown} and ${files.length - limit} more` : shown;
 }
 
 export function copyTemplate(
@@ -168,11 +189,7 @@ export function copyTemplate(
 
   const replacements = options.replacements ?? {};
   for (const sourceFile of walk(templateDir)) {
-    const mappedRel = relative(templateDir, sourceFile)
-      .split(/[/\\]/)
-      .map(segment => DOTFILE_RENAMES[segment] ?? segment)
-      .join('/');
-    const destFile = join(targetDir, mappedRel);
+    const destFile = join(targetDir, targetRelativePath(templateDir, sourceFile));
     mkdirSync(dirname(destFile), { recursive: true });
 
     const isText
@@ -186,6 +203,13 @@ export function copyTemplate(
       cpSync(sourceFile, destFile);
     }
   }
+}
+
+function targetRelativePath(sourceDir: string, sourceFile: string): string {
+  return relative(sourceDir, sourceFile)
+    .split(/[/\\]/)
+    .map(segment => DOTFILE_RENAMES[segment] ?? segment)
+    .join('/');
 }
 
 // A token alone on its line may expand to several lines (each indented like the

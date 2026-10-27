@@ -38,11 +38,20 @@ test and build, so a template change that breaks new projects fails the build.
 | Flag              | Description                                  |
 | ----------------- | -------------------------------------------- |
 | `[directory]`     | Target directory (prompted if omitted).      |
+| `--yes`           | Ask nothing and use the defaults.            |
+| `--overwrite`     | Scaffold into a non-empty directory.         |
 | `--no-git`        | Skip `git init`.                             |
 | `--install`       | Install dependencies after scaffolding.      |
 | `--skip-install`  | Do not install dependencies.                 |
 | `--pm <manager>`  | `npm` (default), `pnpm` or `yarn`.           |
 | `--browser-tests` | Add layout tests that run in a real browser. |
+
+Without a terminal (an agent or a script) or with `--yes`, nothing is asked: a
+directory is required, git is initialized unless `--no-git`, dependencies are
+installed only with `--install`, and a non-empty directory (a lone `.git` folder
+does not count) stops the run with an error unless `--overwrite` is passed. In a
+terminal, the question about a non-empty directory lists the files that would be
+overwritten.
 
 `--pm` also fills the manager's commands into the project's README, `AGENTS.md`
 and CI, and writes its installed version to `packageManager` (skipped with a

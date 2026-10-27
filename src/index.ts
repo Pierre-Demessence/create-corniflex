@@ -10,14 +10,16 @@ import { cancel, confirm, intro, isCancel, log, outro, spinner, text } from '@cl
 
 import { Command, Option } from 'commander';
 import pkg from '../package.json' with { type: 'json' };
-import { addBrowserTests, browserInstallCommand, browserTestReplacements, copyTemplate, isClassicYarn, isDirEmpty, PACKAGE_MANAGERS, packageManagerReplacements, pinPackageManager, slugify, toTitleCase, writeYarnConfig } from './scaffold.ts';
+import { addBrowserTests, browserInstallCommand, browserTestReplacements, copyTemplate, describeFiles, existingTemplateFiles, isClassicYarn, isDirEmpty, PACKAGE_MANAGERS, packageManagerReplacements, pinPackageManager, slugify, toTitleCase, writeYarnConfig } from './scaffold.ts';
 
 interface CliOptions {
   browserTests?: boolean;
   git?: boolean;
   install?: boolean;
+  overwrite?: boolean;
   pm: PackageManager;
   skipInstall?: boolean;
+  yes?: boolean;
 }
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -34,6 +36,8 @@ async function main(): Promise<void> {
     .option('--no-git', 'skip git initialization')
     .option('--install', 'install dependencies after scaffolding')
     .option('--skip-install', 'do not install dependencies')
+    .option('--yes', 'accept the defaults instead of asking questions')
+    .option('--overwrite', 'scaffold into a non-empty directory')
     .option('--browser-tests', 'add Vitest browser mode (Playwright) for layout tests')
     .addOption(new Option('--pm <manager>', 'package manager').choices(PACKAGE_MANAGERS).default('npm'))
     .parse();
@@ -41,24 +45,34 @@ async function main(): Promise<void> {
   const opts = program.opts<CliOptions>();
   const [dirArg] = program.args;
 
+  // Without a terminal (an agent, a script) or with --yes, nothing is asked and
+  // the defaults apply: git on, no install, no overwrite of a non-empty folder.
+  const interactive = !opts.yes && Boolean(process.stdin.isTTY && process.stdout.isTTY);
+  const sourceDirs = opts.browserTests ? [templateDir, browserTestsDir] : [templateDir];
+
+  if (!interactive) {
+    if (!dirArg)
+      fail('Pass a directory to create the project in: create-corniflex <directory>.');
+    checkTargetIsUsable(resolve(process.cwd(), dirArg), opts, sourceDirs);
+  }
+
   intro('create-corniflex');
 
   const targetName = dirArg ?? (await promptText('Where should we create your project?', 'my-app'));
   const targetDir = resolve(process.cwd(), targetName);
   const projectName = slugify(basename(targetDir));
 
-  if (!isDirEmpty(targetDir)) {
-    const overwrite = await promptConfirm(
-      `Directory "${basename(targetDir)}" is not empty. Continue anyway?`,
-      false,
-    );
-    if (!overwrite)
+  if (interactive && !opts.overwrite && !isDirEmpty(targetDir)) {
+    const overwritten = existingTemplateFiles(sourceDirs, targetDir);
+    const files = overwritten.length > 0 ? ` These files would be overwritten: ${describeFiles(overwritten)}.` : '';
+    const proceed = await promptConfirm(`Directory "${basename(targetDir)}" is not empty.${files} Continue anyway?`, false);
+    if (!proceed)
       return abort();
   }
 
-  const doGit = opts.git === false ? false : await promptConfirm('Initialize a git repository?', true);
+  const doGit = opts.git === false ? false : !interactive || await promptConfirm('Initialize a git repository?', true);
   const doInstall = resolveInstall(opts);
-  const wantInstall = typeof doInstall === 'boolean' ? doInstall : await promptConfirm('Install dependencies now?', false);
+  const wantInstall = doInstall ?? (interactive && await promptConfirm('Install dependencies now?', false));
 
   const scaffolding = spinner();
   scaffolding.start('Scaffolding project');
@@ -101,6 +115,14 @@ function resolveInstall(opts: CliOptions): boolean | undefined {
   if (opts.skipInstall)
     return false;
   return undefined;
+}
+
+function checkTargetIsUsable(targetDir: string, opts: CliOptions, sourceDirs: string[]): void {
+  if (opts.overwrite || isDirEmpty(targetDir))
+    return;
+  const overwritten = existingTemplateFiles(sourceDirs, targetDir);
+  const files = overwritten.length > 0 ? ` (it would overwrite ${describeFiles(overwritten)})` : '';
+  fail(`Directory "${basename(targetDir)}" is not empty. Pass --overwrite to scaffold into it anyway${files}.`);
 }
 
 async function promptText(message: string, defaultValue: string): Promise<string> {
@@ -178,9 +200,13 @@ function run(command: string, cwd: string): void {
   execSync(command, { cwd, stdio: 'ignore' });
 }
 
+function fail(message: string): never {
+  cancel(message);
+  process.exit(1);
+}
+
 function abort(): never {
-  cancel('Operation cancelled.');
-  process.exit(0);
+  return fail('Operation cancelled.');
 }
 
 main().catch((error: unknown) => {
