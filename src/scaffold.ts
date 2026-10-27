@@ -33,6 +33,10 @@ const DOTFILE_RENAMES: Record<string, string> = {
   _gitignore: '.gitignore',
 };
 
+export const PACKAGE_MANAGERS = ['npm', 'pnpm', 'yarn'] as const;
+
+export type PackageManager = (typeof PACKAGE_MANAGERS)[number];
+
 export interface CopyTemplateOptions {
   replacements?: Record<string, string>;
 }
@@ -54,6 +58,48 @@ export function toTitleCase(slug: string): string {
     .map(word => `${word.charAt(0).toUpperCase()}${word.slice(1)}`)
     .join(' ');
   return title || 'App';
+}
+
+// `version` is the manager's installed version, when known. Yarn 1 spells the
+// frozen install `--frozen-lockfile`; every later version `--immutable`, which
+// is also assumed when the version is unknown.
+export function packageManagerReplacements(pm: PackageManager, version?: string): Record<string, string> {
+  const isYarnClassic = pm === 'yarn' && isClassicYarn(version);
+  const installCi = {
+    npm: 'npm ci',
+    pnpm: 'pnpm install --frozen-lockfile',
+    yarn: `yarn install ${isYarnClassic ? '--frozen-lockfile' : '--immutable'}`,
+  }[pm];
+  // pnpm/action-setup reads the version from `packageManager` and fails
+  // without one, so an unpinned project asks for the latest.
+  const setup = {
+    npm: '',
+    pnpm: version ? '- uses: pnpm/action-setup@v6' : '- uses: pnpm/action-setup@v6\n  with:\n    version: latest',
+    yarn: '- run: corepack enable',
+  }[pm];
+  return { PM: pm, INSTALL_CI: installCi, CI_PM_SETUP: setup };
+}
+
+export function isClassicYarn(version?: string): boolean {
+  return version?.startsWith('1.') ?? false;
+}
+
+// Yarn 2+ defaults to Plug'n'Play, whose generated .pnp.* files fail ESLint.
+export function writeYarnConfig(targetDir: string): void {
+  writeFileSync(join(targetDir, '.yarnrc.yml'), 'nodeLinker: node-modules\n');
+}
+
+export function pinPackageManager(targetDir: string, pm: PackageManager, version: string): void {
+  const file = join(targetDir, 'package.json');
+  const pkg = JSON.parse(readFileSync(file, 'utf8')) as Record<string, unknown>;
+  const pinned: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(pkg)) {
+    pinned[key] = value;
+    // Placed after `private`, where sort-package-json expects it.
+    if (key === 'private')
+      pinned.packageManager = `${pm}@${version}`;
+  }
+  writeFileSync(file, `${JSON.stringify(pinned, null, 2)}\n`);
 }
 
 export function isDirEmpty(dir: string): boolean {
@@ -92,10 +138,17 @@ export function copyTemplate(
   }
 }
 
+// A token alone on its line may expand to several lines (each indented like the
+// token) or to nothing, in which case the line is dropped.
 function applyReplacements(content: string, replacements: Record<string, string>): string {
   let out = content;
-  for (const [token, value] of Object.entries(replacements))
-    out = out.replaceAll(`{{${token}}}`, value);
+  for (const [token, value] of Object.entries(replacements)) {
+    const placeholder = `{{${token}}}`;
+    const ownLine = new RegExp(`^([ \\t]*)\\{\\{${token}\\}\\}\\r?\\n`, 'gm');
+    out = out.replace(ownLine, (_line, indent: string) =>
+      value === '' ? '' : `${indent}${value.split('\n').join(`\n${indent}`)}\n`);
+    out = out.replaceAll(placeholder, value);
+  }
   return out;
 }
 

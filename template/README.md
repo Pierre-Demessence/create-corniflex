@@ -6,21 +6,21 @@ A Vite + TypeScript app scaffolded with
 ## Getting started
 
 ```sh
-npm install
-npm run dev
+{{PM}} install
+{{PM}} run dev
 ```
 
 ## Scripts
 
 | Script                  | Description                           |
 | ----------------------- | ------------------------------------- |
-| `npm run dev`           | Start the Vite dev server.            |
-| `npm run build`         | Type-check, then build for production.|
-| `npm run preview`       | Preview the production build.         |
-| `npm run lint`          | Lint with ESLint.                     |
-| `npm run lint:fix`      | Lint and auto-fix.                    |
-| `npm test`              | Run Vitest once.                      |
-| `npm run test:watch`    | Run Vitest in watch mode.             |
-| `npm run test:coverage` | Run Vitest with coverage.             |
+| `{{PM}} run dev`           | Start the Vite dev server.            |
+| `{{PM}} run build`         | Type-check, then build for production.|
+| `{{PM}} run preview`       | Preview the production build.         |
+| `{{PM}} run lint`          | Lint with ESLint.                     |
+| `{{PM}} run lint:fix`      | Lint and auto-fix.                    |
+| `{{PM}} test`              | Run Vitest once.                      |
+| `{{PM}} run test:watch`    | Run Vitest in watch mode.             |
+| `{{PM}} run test:coverage` | Run Vitest with coverage.             |
 
 Project docs: [docs/backlog.md](docs/backlog.md) and [docs/decisions.md](docs/decisions.md). Agent notes: [AGENTS.md](AGENTS.md).

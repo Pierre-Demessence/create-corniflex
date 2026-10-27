@@ -6,6 +6,7 @@ yarn-debug.log*
 pnpm-debug.log*
 
 node_modules
+.yarn/install-state.gz
 dist
 dist-ssr
 coverage

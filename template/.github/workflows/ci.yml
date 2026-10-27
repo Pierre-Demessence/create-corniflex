@@ -14,11 +14,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      {{CI_PM_SETUP}}
       - uses: actions/setup-node@v7
         with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm run lint
-      - run: npm test
-      - run: npm run build
+          node-version-file: .tool-versions
+          cache: {{PM}}
+      - run: {{INSTALL_CI}}
+      - run: {{PM}} run lint
+      - run: {{PM}} test
+      - run: {{PM}} run build

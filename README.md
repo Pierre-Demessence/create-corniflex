@@ -37,13 +37,17 @@ create-corniflex my-app
 | `--no-git`       | Skip `git init`.                              |
 | `--install`      | Install dependencies after scaffolding.       |
 | `--skip-install` | Do not install dependencies.                  |
-| `--pm <manager>` | Package manager: `npm` (default), `pnpm`, …   |
+| `--pm <manager>` | `npm` (default), `pnpm` or `yarn`.            |
+
+`--pm` also fills the manager's commands into the project's README, `AGENTS.md`
+and CI, and writes its installed version to `packageManager` (skipped with a
+warning when the manager isn't installed).
 
 ## How it works
 
 `npm create corniflex` is an alias for `npm exec create-corniflex`. This package
 exposes a `create-corniflex` bin that copies [template/](template/) into the
 target directory, restores stored dotfiles (`_gitignore` → `.gitignore`), and
-replaces the `{{PROJECT_NAME}}` (npm slug) and `{{PROJECT_TITLE}}` (display name)
-tokens. See
+replaces the `{{PROJECT_NAME}}` (npm slug), `{{PROJECT_TITLE}}` (display name)
+and package-manager tokens. See
 [docs/plans/](docs/plans/) for design notes.

@@ -1,6 +1,6 @@
 # Backlog
 
-Next ID: B2
+Next ID: B4
 
 Everything not done yet. One line per item; delete an item in the same commit
 that completes it.
@@ -8,3 +8,5 @@ that completes it.
 ## Tech debt
 
 - B1 The generator still targets Node 20 (`engines` in `package.json`, `target` in `tsup.config.ts`) while the template requires Node 22.22+; align them.
+- B2 Scaffolded text files follow the checkout line endings: with `core.autocrlf` on Windows the template is CRLF, `applyReplacements` writes LF around multi-line tokens (mixed endings in `ci.yml`), and the LF-only assertions in `tests/scaffold.test.ts` fail. Add a `.gitattributes` with `eol=lf`, or write the matched line ending.
+- B3 `readVersion` in `src/index.ts` asks `<pm> --version` from the temp folder; with Corepack enabled, yarn may answer 1.x instead of the user's version, so the project is pinned to `yarn@1` and CI uses `--frozen-lockfile`. An unpinned yarn also gets `--immutable` in CI, which Yarn 1 rejects.

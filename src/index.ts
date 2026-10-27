@@ -1,19 +1,21 @@
+import type { PackageManager } from './scaffold.ts';
 import { execSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { basename, dirname, resolve } from 'node:path';
 import process from 'node:process';
+
 import { fileURLToPath } from 'node:url';
+import { cancel, confirm, intro, isCancel, log, outro, spinner, text } from '@clack/prompts';
 
-import { cancel, confirm, intro, isCancel, outro, spinner, text } from '@clack/prompts';
 import { Command, Option } from 'commander';
-
 import pkg from '../package.json' with { type: 'json' };
-import { copyTemplate, isDirEmpty, slugify, toTitleCase } from './scaffold.ts';
+import { copyTemplate, isClassicYarn, isDirEmpty, PACKAGE_MANAGERS, packageManagerReplacements, pinPackageManager, slugify, toTitleCase, writeYarnConfig } from './scaffold.ts';
 
 interface CliOptions {
   git?: boolean;
   install?: boolean;
-  pm: string;
+  pm: PackageManager;
   skipInstall?: boolean;
 }
 
@@ -30,7 +32,7 @@ async function main(): Promise<void> {
     .option('--no-git', 'skip git initialization')
     .option('--install', 'install dependencies after scaffolding')
     .option('--skip-install', 'do not install dependencies')
-    .addOption(new Option('--pm <manager>', 'package manager').choices(['npm', 'pnpm', 'yarn', 'bun']).default('npm'))
+    .addOption(new Option('--pm <manager>', 'package manager').choices(PACKAGE_MANAGERS).default('npm'))
     .parse();
 
   const opts = program.opts<CliOptions>();
@@ -57,8 +59,21 @@ async function main(): Promise<void> {
 
   const scaffolding = spinner();
   scaffolding.start('Scaffolding project');
-  copyTemplate(templateDir, targetDir, { replacements: { PROJECT_NAME: projectName, PROJECT_TITLE: toTitleCase(projectName) } });
+  const pmVersion = readVersion(opts.pm);
+  copyTemplate(templateDir, targetDir, {
+    replacements: {
+      PROJECT_NAME: projectName,
+      PROJECT_TITLE: toTitleCase(projectName),
+      ...packageManagerReplacements(opts.pm, pmVersion),
+    },
+  });
+  if (pmVersion)
+    pinPackageManager(targetDir, opts.pm, pmVersion);
+  if (opts.pm === 'yarn' && !isClassicYarn(pmVersion))
+    writeYarnConfig(targetDir);
   scaffolding.stop('Project files created');
+  if (!pmVersion)
+    log.warn(`${opts.pm} was not found, so package.json has no "packageManager" field.`);
 
   if (doGit)
     initGit(targetDir);
@@ -112,7 +127,7 @@ function initGit(targetDir: string): void {
   }
 }
 
-function installDeps(targetDir: string, pm: string): void {
+function installDeps(targetDir: string, pm: PackageManager): void {
   const installing = spinner();
   installing.start(`Installing dependencies with ${pm}`);
   try {
@@ -121,6 +136,17 @@ function installDeps(targetDir: string, pm: string): void {
   }
   catch {
     installing.stop(`Could not run "${pm} install" — install dependencies manually.`);
+  }
+}
+
+// Runs from the temp directory so a project's own `packageManager` field
+// (through corepack) cannot change the answer.
+function readVersion(pm: PackageManager): string | undefined {
+  try {
+    return execSync(`${pm} --version`, { cwd: tmpdir(), encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim() || undefined;
+  }
+  catch {
+    return undefined;
   }
 }
 

@@ -4,10 +4,10 @@ Agent operating notes for **{{PROJECT_TITLE}}**: a Vite + TypeScript (strict) ap
 
 ## Commands
 
-- Dev server: `npm run dev`
-- Build: `npm run build` (runs `tsc --noEmit`, then `vite build`)
-- Lint: `npm run lint` / `npm run lint:fix`
-- Test: `npm test` / `npm run test:watch` / `npm run test:coverage`
+- Dev server: `{{PM}} run dev`
+- Build: `{{PM}} run build` (runs `tsc --noEmit`, then `vite build`)
+- Lint: `{{PM}} run lint` / `{{PM}} run lint:fix`
+- Test: `{{PM}} test` / `{{PM}} run test:watch` / `{{PM}} run test:coverage`
 
 Run lint, test and build before considering work done.
 
