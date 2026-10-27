@@ -67,6 +67,24 @@ test('copyTemplate drops obsolete files and settings and checks indexed access',
   }
 });
 
+test('copyTemplate scaffolds docs that follow the ID conventions', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'corniflex-'));
+  try {
+    copyTemplate(templateDir, dir);
+
+    const backlog = readFileSync(join(dir, 'docs', 'backlog.md'), 'utf8');
+    assert.match(backlog, /^Next ID: B1$/m);
+    assert.ok(backlog.includes('`B<n>`'));
+
+    assert.ok(readFileSync(join(dir, 'AGENTS.md'), 'utf8').includes('`research/`'));
+    assert.ok(existsSync(join(dir, 'docs', 'plans', '.gitkeep')), 'plans folder kept');
+    assert.ok(!existsSync(join(dir, 'docs', 'plans', 'done')), 'no plans/done');
+  }
+  finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('package.json lists the refreshed tool versions and no import resolver', () => {
   const dir = mkdtempSync(join(tmpdir(), 'corniflex-'));
   try {

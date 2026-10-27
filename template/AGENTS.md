@@ -16,8 +16,9 @@ Run lint, test and build before considering work done.
 - `src/main.ts` — entry point; mounts into `#app`.
 - `src/example.ts` / `src/example.test.ts` — sample module and test; replace them.
 - `index.html` — Vite HTML entry; `%APP_NAME%` is replaced from `brand.json` at build time.
-- `docs/` — `backlog.md` (everything not done), `decisions.md` (non-obvious
-  decisions and why), `plans/` (work in progress).
+- `docs/` — `backlog.md` (everything not done, `B<n>` IDs), `decisions.md`
+  (non-obvious decisions and why), `research/` (findings awaiting a decision;
+  created when needed), `plans/` (work in progress, deleted when finished).
 
 ## Conventions
 

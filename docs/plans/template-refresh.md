@@ -2,7 +2,7 @@
 
 **Goal:** a project made with `create-corniflex` starts on current tool versions, with less config to keep in sync, a CI that proves the template still works, and docs that follow the user's current rules.
 
-**Status:** decisions 1–3 approved as recommended; T1, T3, T4, T5 and T6 done; next T7 (T2 waits for 2026-10-30). Source: hand-off in `I:/Dev/AI/.agents/docs/plans/instructions-review.md`. Versions checked with `npm view` and `gh api` on 2026-10-27.
+**Status:** decisions 1–3 approved as recommended; T1 and T3–T7 done; next T8 (T2 waits for 2026-10-30). Source: hand-off in `I:/Dev/AI/.agents/docs/plans/instructions-review.md`. Versions checked with `npm view` and `gh api` on 2026-10-27.
 
 ## Verified versions
 
@@ -66,7 +66,7 @@ Each item: edit, scaffold into a scratch folder and run install, lint, test, bui
 - [x] **T6 Package manager and pins.** Design "Package manager" and "Pins"; `src/index.ts` choices per decision 3; generator tests for criteria 2 and 4.
   Visible after: `--pm pnpm` yields pnpm commands everywhere, plus `.tool-versions` and `packageManager`.
   Needs you: nothing.
-- [ ] **T7 Template docs.** Design "Docs".
+- [x] **T7 Template docs.** Design "Docs".
   Visible after: new projects' backlog uses `B<n>` and `Next ID:`.
   Needs you: nothing.
 - [ ] **T8 Keeping current.** Per decision 2: `renovate.json` (7-day delay, groups for ESLint and Vitest packages) or `.github/dependabot.yml`; a `.github/workflows/ci.yml` in this repo that builds the generator, scaffolds a project for each manager and runs its lint, test and build.
@@ -75,6 +75,6 @@ Each item: edit, scaffold into a scratch folder and run install, lint, test, bui
 - [ ] **T9 Browser tests** (only if decision 1 is agreed). `--browser-tests` adds `@vitest/browser-playwright`, `playwright`, a second Vitest project for `*.browser.test.ts`, a sample layout test, `npx playwright install --with-deps chromium` in CI, and a line in `AGENTS.md`.
   Visible after: `--browser-tests` projects can assert real element sizes.
   Needs you: nothing.
-- [ ] **T10 Final review and finish.** Review against all criteria; move decisions that pass the `docs/decisions.md` test there (this repo has none yet); delete the plan in the last commit, naming its path.
+- [ ] **T10 Final review and finish.** Review against all criteria; fix the dangling `docs/plans/` link in the generator `README.md` (line 53) since plans are deleted when finished; move decisions that pass the `docs/decisions.md` test there (this repo has none yet); delete the plan in the last commit, naming its path.
   Visible after: nothing: it only checks.
   Needs you: nothing.
