@@ -7,9 +7,9 @@ export default antfu({
   stylistic: {
     semi: true,
   },
-  // The template ships configs that reference deps not installed here, so it
+  // The templates ship configs that reference deps not installed here, so they
   // must never be linted as part of this package.
-  ignores: ['dist/**', 'node_modules/**', 'docs/**', 'template/**'],
+  ignores: ['dist/**', 'node_modules/**', 'docs/**', 'template/**', 'template-browser-tests/**'],
   rules: {
     // This is a CLI; console output is the product.
     'no-console': 'off',

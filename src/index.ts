@@ -10,9 +10,10 @@ import { cancel, confirm, intro, isCancel, log, outro, spinner, text } from '@cl
 
 import { Command, Option } from 'commander';
 import pkg from '../package.json' with { type: 'json' };
-import { copyTemplate, isClassicYarn, isDirEmpty, PACKAGE_MANAGERS, packageManagerReplacements, pinPackageManager, slugify, toTitleCase, writeYarnConfig } from './scaffold.ts';
+import { addBrowserTests, browserInstallCommand, browserTestReplacements, copyTemplate, isClassicYarn, isDirEmpty, PACKAGE_MANAGERS, packageManagerReplacements, pinPackageManager, slugify, toTitleCase, writeYarnConfig } from './scaffold.ts';
 
 interface CliOptions {
+  browserTests?: boolean;
   git?: boolean;
   install?: boolean;
   pm: PackageManager;
@@ -21,6 +22,7 @@ interface CliOptions {
 
 const here = dirname(fileURLToPath(import.meta.url));
 const templateDir = resolve(here, '../template');
+const browserTestsDir = resolve(here, '../template-browser-tests');
 
 async function main(): Promise<void> {
   const program = new Command();
@@ -32,6 +34,7 @@ async function main(): Promise<void> {
     .option('--no-git', 'skip git initialization')
     .option('--install', 'install dependencies after scaffolding')
     .option('--skip-install', 'do not install dependencies')
+    .option('--browser-tests', 'add Vitest browser mode (Playwright) for layout tests')
     .addOption(new Option('--pm <manager>', 'package manager').choices(PACKAGE_MANAGERS).default('npm'))
     .parse();
 
@@ -65,8 +68,11 @@ async function main(): Promise<void> {
       PROJECT_NAME: projectName,
       PROJECT_TITLE: toTitleCase(projectName),
       ...packageManagerReplacements(opts.pm, pmVersion),
+      ...browserTestReplacements(opts.pm, opts.browserTests ?? false),
     },
   });
+  if (opts.browserTests)
+    addBrowserTests(browserTestsDir, targetDir);
   if (pmVersion)
     pinPackageManager(targetDir, opts.pm, pmVersion);
   if (opts.pm === 'yarn' && !isClassicYarn(pmVersion))
@@ -78,12 +84,12 @@ async function main(): Promise<void> {
   if (doGit)
     initGit(targetDir);
 
-  if (wantInstall)
-    installDeps(targetDir, opts.pm);
+  const installed = wantInstall && installDeps(targetDir, opts.pm, opts.browserTests ?? false);
 
   const next = [
     `cd ${targetName}`,
     ...(wantInstall ? [] : [`${opts.pm} install`]),
+    ...(opts.browserTests && !installed ? [browserInstallCommand(opts.pm)] : []),
     `${opts.pm} run dev`,
   ];
   outro(`Done! Next steps:\n  ${next.join('\n  ')}`);
@@ -127,7 +133,8 @@ function initGit(targetDir: string): void {
   }
 }
 
-function installDeps(targetDir: string, pm: PackageManager): void {
+// Returns false when the dependencies could not be installed.
+function installDeps(targetDir: string, pm: PackageManager, browserTests: boolean): boolean {
   const installing = spinner();
   installing.start(`Installing dependencies with ${pm}`);
   try {
@@ -136,6 +143,23 @@ function installDeps(targetDir: string, pm: PackageManager): void {
   }
   catch {
     installing.stop(`Could not run "${pm} install" — install dependencies manually.`);
+    return false;
+  }
+  if (browserTests)
+    installBrowser(targetDir, pm);
+  return true;
+}
+
+function installBrowser(targetDir: string, pm: PackageManager): void {
+  const command = browserInstallCommand(pm);
+  const installing = spinner();
+  installing.start('Installing Chromium for browser tests');
+  try {
+    run(command, targetDir);
+    installing.stop('Chromium installed');
+  }
+  catch {
+    installing.stop(`Could not run "${command}" — run it manually.`);
   }
 }
 

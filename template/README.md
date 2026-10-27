@@ -7,6 +7,7 @@ A Vite + TypeScript app scaffolded with
 
 ```sh
 {{PM}} install
+{{README_BROWSER_SETUP}}
 {{PM}} run dev
 ```
 

@@ -21,5 +21,6 @@ jobs:
           cache: {{PM}}
       - run: {{INSTALL_CI}}
       - run: {{PM}} run lint
+      {{CI_BROWSER_SETUP}}
       - run: {{PM}} test
       - run: {{PM}} run build

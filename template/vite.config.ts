@@ -1,3 +1,4 @@
+{{BROWSER_IMPORT}}
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vitest/config';
@@ -16,8 +17,18 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   test: {
-    environment: 'jsdom',
-    include: ['src/**/*.test.ts'],
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'unit',
+          environment: 'jsdom',
+          include: ['src/**/*.test.ts'],
+          exclude: ['src/**/*.browser.test.ts'],
+        },
+      },
+      {{BROWSER_PROJECT}}
+    ],
     coverage: {
       exclude: ['src/**/*.test.ts', 'src/main.ts'],
       include: ['src/**/*.ts'],

@@ -35,17 +35,24 @@ test and build, so a template change that breaks new projects fails the build.
 
 ### Options
 
-| Flag             | Description                                   |
-| ---------------- | --------------------------------------------- |
-| `[directory]`    | Target directory (prompted if omitted).       |
-| `--no-git`       | Skip `git init`.                              |
-| `--install`      | Install dependencies after scaffolding.       |
-| `--skip-install` | Do not install dependencies.                  |
-| `--pm <manager>` | `npm` (default), `pnpm` or `yarn`.            |
+| Flag              | Description                                  |
+| ----------------- | -------------------------------------------- |
+| `[directory]`     | Target directory (prompted if omitted).      |
+| `--no-git`        | Skip `git init`.                             |
+| `--install`       | Install dependencies after scaffolding.      |
+| `--skip-install`  | Do not install dependencies.                 |
+| `--pm <manager>`  | `npm` (default), `pnpm` or `yarn`.           |
+| `--browser-tests` | Add layout tests that run in a real browser. |
 
 `--pm` also fills the manager's commands into the project's README, `AGENTS.md`
 and CI, and writes its installed version to `packageManager` (skipped with a
 warning when the manager isn't installed).
+
+`--browser-tests` adds a second Vitest project that runs `*.browser.test.ts`
+files in headless Chromium through Playwright, for checks jsdom can't make
+(element sizes, overlaps, wrapping), with a sample test and the browser install
+in CI. It is opt-in because the browser is a large download for every install
+and CI run.
 
 ## How it works
 
@@ -53,5 +60,7 @@ warning when the manager isn't installed).
 exposes a `create-corniflex` bin that copies [template/](template/) into the
 target directory, restores stored dotfiles (`_gitignore` → `.gitignore`), and
 replaces the `{{PROJECT_NAME}}` (npm slug), `{{PROJECT_TITLE}}` (display name)
-and package-manager tokens. See
+and package-manager tokens. With `--browser-tests` it also merges the
+devDependencies and copies the files of
+[template-browser-tests/](template-browser-tests/). See
 [docs/plans/](docs/plans/) for design notes.

@@ -39,6 +39,9 @@ jobs:
             lint-args: --max-warnings 0
           - pm: yarn
             lint-args: --max-warnings 0
+          - pm: npm
+            lint-args: -- --max-warnings 0
+            flags: --browser-tests
     steps:
       - uses: actions/checkout@v7
       - if: matrix.pm == 'pnpm'
@@ -53,11 +56,14 @@ jobs:
         run: corepack enable
       - run: npm ci
       - run: npm run build
-      - run: node dist/index.js "$RUNNER_TEMP/app" --no-git --skip-install --pm ${{ matrix.pm }}
+      - run: node dist/index.js "$RUNNER_TEMP/app" --no-git --skip-install --pm ${{ matrix.pm }} ${{ matrix.flags }}
       - working-directory: ${{ runner.temp }}/app
         run: ${{ matrix.pm }} install
       - working-directory: ${{ runner.temp }}/app
         run: ${{ matrix.pm }} run lint ${{ matrix.lint-args }}
+      - if: matrix.flags == '--browser-tests'
+        working-directory: ${{ runner.temp }}/app
+        run: npx playwright install --with-deps chromium
       - working-directory: ${{ runner.temp }}/app
         run: ${{ matrix.pm }} test
       - working-directory: ${{ runner.temp }}/app

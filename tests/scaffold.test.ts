@@ -6,10 +6,11 @@ import { dirname, join, resolve } from 'node:path';
 import { test } from 'node:test';
 
 import { fileURLToPath } from 'node:url';
-import { copyTemplate, isClassicYarn, isDirEmpty, PACKAGE_MANAGERS, packageManagerReplacements, pinPackageManager, slugify, toTitleCase, writeYarnConfig } from '../src/scaffold.ts';
+import { addBrowserTests, browserTestReplacements, copyTemplate, isClassicYarn, isDirEmpty, PACKAGE_MANAGERS, packageManagerReplacements, pinPackageManager, slugify, toTitleCase, writeYarnConfig } from '../src/scaffold.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const templateDir = resolve(here, '../template');
+const browserTestsDir = resolve(here, '../template-browser-tests');
 
 test('slugify produces npm-safe names', () => {
   assert.equal(slugify('My Cool App'), 'my-cool-app');
@@ -143,7 +144,7 @@ for (const pm of PACKAGE_MANAGERS) {
   test(`copyTemplate renders ${pm} commands everywhere`, () => {
     const dir = mkdtempSync(join(tmpdir(), 'corniflex-'));
     try {
-      copyTemplate(templateDir, dir, { replacements: { PROJECT_NAME: 'test-app', PROJECT_TITLE: 'Test App', ...packageManagerReplacements(pm, '10.0.0') } });
+      copyTemplate(templateDir, dir, { replacements: { PROJECT_NAME: 'test-app', PROJECT_TITLE: 'Test App', ...packageManagerReplacements(pm, '10.0.0'), ...browserTestReplacements(pm, false) } });
 
       const files = ['README.md', 'AGENTS.md', join('.github', 'workflows', 'ci.yml')].map(file => readFileSync(join(dir, file), 'utf8'));
       for (const content of files) {
@@ -159,6 +160,62 @@ for (const pm of PACKAGE_MANAGERS) {
       // Renovate's asdf manager knows the tool only as `nodejs`; mise and
       // setup-node accept both spellings.
       assert.equal(readFileSync(join(dir, '.tool-versions'), 'utf8').trim(), 'nodejs 24');
+    }
+    finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+}
+
+test('browser tests are left out unless asked for', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'corniflex-'));
+  try {
+    copyTemplate(templateDir, dir, { replacements: { PROJECT_NAME: 'test-app', PROJECT_TITLE: 'Test App', ...packageManagerReplacements('npm'), ...browserTestReplacements('npm', false) } });
+
+    for (const file of ['vite.config.ts', 'package.json', 'brand.json', 'README.md', 'AGENTS.md', join('.github', 'workflows', 'ci.yml')])
+      assert.ok(!readFileSync(join(dir, file), 'utf8').includes('{{'), `no token left unfilled in ${file}`);
+    assert.ok(!readFileSync(join(dir, 'vite.config.ts'), 'utf8').includes('playwright'));
+    assert.ok(!readFileSync(join(dir, '.github', 'workflows', 'ci.yml'), 'utf8').includes('playwright'));
+    assert.ok(!readFileSync(join(dir, 'README.md'), 'utf8').includes('playwright'));
+    assert.ok(!existsSync(join(dir, 'src', 'example.browser.test.ts')));
+    const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) as { devDependencies: Record<string, string> };
+    assert.ok(!('playwright' in pkg.devDependencies));
+  }
+  finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+for (const [pm, exec] of [['npm', 'npx'], ['pnpm', 'pnpm exec'], ['yarn', 'yarn']] as const) {
+  test(`--browser-tests adds a Chromium test project with ${pm}`, () => {
+    const dir = mkdtempSync(join(tmpdir(), 'corniflex-'));
+    try {
+      copyTemplate(templateDir, dir, { replacements: { PROJECT_NAME: 'test-app', PROJECT_TITLE: 'Test App', ...packageManagerReplacements(pm, '10.0.0'), ...browserTestReplacements(pm, true) } });
+      addBrowserTests(browserTestsDir, dir);
+
+      const viteConfig = readFileSync(join(dir, 'vite.config.ts'), 'utf8');
+      assert.ok(viteConfig.includes(`import { playwright } from '@vitest/browser-playwright';`));
+      assert.ok(viteConfig.includes(`      {
+        extends: true,
+        test: {
+          name: 'browser',`), 'browser project indented in the projects list');
+      assert.ok(viteConfig.includes('provider: playwright(),'));
+
+      const install = `${exec} playwright install chromium`;
+      const ci = readFileSync(join(dir, '.github', 'workflows', 'ci.yml'), 'utf8');
+      assert.ok(ci.includes(`      - run: ${install} --with-deps
+      - run: ${pm} test`), 'browser installed before tests');
+      assert.ok(readFileSync(join(dir, 'README.md'), 'utf8').includes(`${pm} install
+${install}
+`));
+      assert.ok(readFileSync(join(dir, 'AGENTS.md'), 'utf8').includes('`<name>.browser.test.ts`'));
+      assert.ok(existsSync(join(dir, 'src', 'example.browser.test.ts')));
+
+      const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) as { devDependencies: Record<string, string> };
+      const names = Object.keys(pkg.devDependencies);
+      assert.deepEqual(names, names.toSorted(), 'devDependencies stay sorted');
+      assert.equal(pkg.devDependencies['@vitest/browser-playwright'], pkg.devDependencies.vitest, 'matches Vitest exactly');
+      assert.ok(pkg.devDependencies.playwright);
     }
     finally {
       rmSync(dir, { recursive: true, force: true });

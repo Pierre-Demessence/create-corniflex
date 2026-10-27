@@ -24,6 +24,7 @@ Run lint, test and build before considering work done.
 
 - Import from `@/…` instead of long relative paths.
 - Co-locate tests with source as `<name>.test.ts`.
+{{AGENTS_BROWSER_TESTS}}
 - 2-space indent, single quotes, semicolons (enforced by ESLint).
 - ESLint (`@antfu/eslint-config`) sorts interface members with `id` and `name`
   first, and imports as one flat list; a comment line starts a new sorting

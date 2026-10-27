@@ -21,6 +21,7 @@
   },
   "files": [
     "dist/",
+    "template-browser-tests/",
     "template/"
   ],
   "engines": {

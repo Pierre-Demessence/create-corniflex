@@ -80,6 +80,56 @@ export function packageManagerReplacements(pm: PackageManager, version?: string)
   return { PM: pm, INSTALL_CI: installCi, CI_PM_SETUP: setup };
 }
 
+// The tokens are emptied when `enabled` is false, which drops their lines.
+export function browserTestReplacements(pm: PackageManager, enabled: boolean): Record<string, string> {
+  const tokens = ['BROWSER_IMPORT', 'BROWSER_PROJECT', 'CI_BROWSER_SETUP', 'AGENTS_BROWSER_TESTS', 'README_BROWSER_SETUP'];
+  if (!enabled)
+    return Object.fromEntries(tokens.map(token => [token, '']));
+  const installBrowser = browserInstallCommand(pm);
+  return {
+    BROWSER_IMPORT: `import { playwright } from '@vitest/browser-playwright';`,
+    BROWSER_PROJECT: [
+      '{',
+      '  extends: true,',
+      '  test: {',
+      `    name: 'browser',`,
+      `    include: ['src/**/*.browser.test.ts'],`,
+      '    browser: {',
+      '      enabled: true,',
+      '      headless: true,',
+      `      instances: [{ browser: 'chromium' }],`,
+      '      provider: playwright(),',
+      '    },',
+      '  },',
+      '},',
+    ].join('\n'),
+    CI_BROWSER_SETUP: `- run: ${installBrowser} --with-deps`,
+    AGENTS_BROWSER_TESTS: [
+      '- Tests that need real layout (sizes, positions, wrapping) go in',
+      '  `<name>.browser.test.ts` (sample: `src/example.browser.test.ts`) and run in',
+      '  headless Chromium; jsdom computes no layout. Install the browser once with',
+      `  \`${installBrowser}\`.`,
+    ].join('\n'),
+    README_BROWSER_SETUP: installBrowser,
+  };
+}
+
+export function browserInstallCommand(pm: PackageManager): string {
+  return `${{ npm: 'npx', pnpm: 'pnpm exec', yarn: 'yarn' }[pm]} playwright install chromium`;
+}
+
+// The overlay's package.json lists only the extra devDependencies, so Renovate
+// keeps their versions current in this repo like the template's own.
+export function addBrowserTests(overlayDir: string, targetDir: string): void {
+  const file = join(targetDir, 'package.json');
+  const pkg = JSON.parse(readFileSync(file, 'utf8')) as { devDependencies?: Record<string, string> };
+  const overlay = JSON.parse(readFileSync(join(overlayDir, 'package.json'), 'utf8')) as { devDependencies: Record<string, string> };
+  const merged = { ...pkg.devDependencies, ...overlay.devDependencies };
+  pkg.devDependencies = Object.fromEntries(Object.entries(merged).sort(([a], [b]) => (a < b ? -1 : 1)));
+  writeFileSync(file, `${JSON.stringify(pkg, null, 2)}\n`);
+  cpSync(join(overlayDir, 'src'), join(targetDir, 'src'), { recursive: true });
+}
+
 export function isClassicYarn(version?: string): boolean {
   return version?.startsWith('1.') ?? false;
 }
