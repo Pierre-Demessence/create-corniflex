@@ -23,10 +23,10 @@ jobs:
       - run: npm test
       - run: npm run build
 
-  # Scaffolds a project per package manager and runs what its own CI runs, so
-  # a template that no longer installs, lints, tests or builds turns this red.
-  # Lint warnings fail too; only npm needs `--` to pass the flag to ESLint
-  # (pnpm forwards it literally).
+  # Scaffolds a project per package manager and runs what its own CI runs
+  # (scripts/smoke.ts), so a template that no longer installs, lints without
+  # warnings, tests or builds turns this red. `npm run smoke` runs the same
+  # check locally.
   template:
     runs-on: ubuntu-latest
     strategy:
@@ -34,13 +34,9 @@ jobs:
       matrix:
         include:
           - pm: npm
-            lint-args: -- --max-warnings 0
           - pm: pnpm
-            lint-args: --max-warnings 0
           - pm: yarn
-            lint-args: --max-warnings 0
           - pm: npm
-            lint-args: -- --max-warnings 0
             flags: --browser-tests
     steps:
       - uses: actions/checkout@v7
@@ -55,16 +51,4 @@ jobs:
       - if: matrix.pm == 'yarn'
         run: corepack enable
       - run: npm ci
-      - run: npm run build
-      - run: node dist/index.js "$RUNNER_TEMP/app" --no-git --skip-install --pm ${{ matrix.pm }} ${{ matrix.flags }}
-      - working-directory: ${{ runner.temp }}/app
-        run: ${{ matrix.pm }} install
-      - working-directory: ${{ runner.temp }}/app
-        run: ${{ matrix.pm }} run lint ${{ matrix.lint-args }}
-      - if: matrix.flags == '--browser-tests'
-        working-directory: ${{ runner.temp }}/app
-        run: npx playwright install --with-deps chromium
-      - working-directory: ${{ runner.temp }}/app
-        run: ${{ matrix.pm }} test
-      - working-directory: ${{ runner.temp }}/app
-        run: ${{ matrix.pm }} run build
+      - run: npm run smoke -- --pm ${{ matrix.pm }} ${{ matrix.flags }}

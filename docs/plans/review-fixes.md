@@ -2,7 +2,7 @@
 
 **Goal:** the generator works when an agent runs it, protects existing files, can be checked locally the way CI checks it, and makes React or Preact projects whose config files are type-checked and linted with type information.
 
-**Status:** approved with decisions 1–4 as recommended; next B10. B6 waits for `template-refresh` T2 (antfu 10, not before 2026-10-30).
+**Status:** approved with decisions 1–4 as recommended; next B1 B14. B6 waits for `template-refresh` T2 (antfu 10, not before 2026-10-30).
 
 ## Decisions (approved)
 
@@ -50,7 +50,7 @@ Each item: implement, run `npm run lint`, `npm test` and the smoke runs it names
 - [x] **B5 B13 Runs without a terminal, safe folders.** `src/index.ts`, `src/scaffold.ts` (`isDirEmpty`, overwrite listing), tests per criteria 1–4, README options table (`--yes`, `--overwrite`).
   Visible after: an agent's `npx S:/Dev/Web/Packages/create-corniflex <dir>` creates the project instead of crashing.
   Needs you: press Ctrl+C at the first prompt and check the exit code is 1; run with `--yes` in a terminal and see no question (at the end).
-- [ ] **B10 Smoke script.** `scripts/smoke.ts`, `package.json` script, `.github/workflows/ci.yml` template job. Run it for npm and pnpm, plus npm `--browser-tests`.
+- [x] **B10 Smoke script.** `scripts/smoke.ts`, `package.json` script, `.github/workflows/ci.yml` template job. Run it for npm and pnpm, plus npm `--browser-tests`.
   Visible after: `npm run smoke -- --pm pnpm` checks a new project locally.
   Needs you: push to see the CI run (at the end).
 - [ ] **B1 B14 Generator toolchain.** `package.json`, `.tool-versions`, `tsdown.config.ts` (delete `tsup.config.ts`), `tsconfig.json`, CI generator job. Check `node dist/index.js --version`, the shebang on line 1 of `dist/index.js`, and `npm pack --dry-run`.

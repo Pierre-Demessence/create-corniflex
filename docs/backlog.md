@@ -15,7 +15,6 @@ that completes it.
 - B7 `template/tsconfig.json` includes only `src` and the template lacks `@types/node`, so `vite.config.ts` has three type errors (`node:fs`, `node:path`, `import.meta.dirname`) that no check reports; add a Node tsconfig for the config files, like create-vite's app/node split.
 - B8 Type-aware lint rules are off: `template/eslint.config.ts` passes `typescript: true` without `tsconfigPath`. Needs B7, so every linted file belongs to a tsconfig.
 - B9 This repo has no `AGENTS.md`: the token rules (`applyReplacements` in `src/scaffold.ts`), `TEXT_EXTENSIONS`, `_`-prefixed dotfiles, `template/` being excluded from lint, and the scaffold CI job as the real check are only discoverable from the code.
-- B10 The scaffold check (install, lint, test and build per package manager) exists only in the `template` job of `.github/workflows/ci.yml`; a script that CI also calls would let it run locally.
 - B11 The template has no `.gitattributes`; with `core.autocrlf=true` on Windows, new projects get CRLF checkouts and mixed line endings from multi-line edits, which this repo's `.gitattributes` prevents here.
 - B12 `copyTemplate` in `src/scaffold.ts` silently leaves a misspelled token, or a token in a file whose extension is not in `TEXT_EXTENSIONS`, as a literal `{{X}}`; fail on any leftover token.
 - B14 tsup is no longer maintained (its README points to tsdown); with B1, build with tsdown and run the tests with `node --test` instead of `tsx`, since Node 22.22+ runs TypeScript files directly.
