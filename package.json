@@ -25,15 +25,15 @@
     "template/"
   ],
   "engines": {
-    "node": ">=20"
+    "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "tsdown",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prepare": "npm run build",
     "smoke": "npm run build && node scripts/smoke.ts",
-    "test": "tsx --test tests/*.test.ts"
+    "test": "node --test tests/*.test.ts"
   },
   "dependencies": {
     "@clack/prompts": "^0.7.0",
@@ -43,8 +43,7 @@
     "@antfu/eslint-config": "^8.2.0",
     "@types/node": "^25.6.0",
     "eslint": "^10.2.1",
-    "tsup": "^8.3.5",
-    "tsx": "^4.20.0",
+    "tsdown": "^0.23.1",
     "typescript": "^6.0.3"
   }
 }

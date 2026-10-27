@@ -1,12 +1,14 @@
-import { defineConfig } from 'tsup';
+import { defineConfig } from 'tsdown';
 
 export default defineConfig({
-  banner: { js: '#!/usr/bin/env node' },
+  banner: '#!/usr/bin/env node',
   clean: true,
   dts: false,
+  fixedExtension: false,
   entry: ['src/index.ts'],
   format: ['esm'],
   minify: false,
   outDir: 'dist',
-  target: 'node20',
+  platform: 'node',
+  target: 'node22',
 });

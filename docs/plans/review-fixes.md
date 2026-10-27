@@ -2,7 +2,7 @@
 
 **Goal:** the generator works when an agent runs it, protects existing files, can be checked locally the way CI checks it, and makes React or Preact projects whose config files are type-checked and linted with type information.
 
-**Status:** approved with decisions 1–4 as recommended; next B1 B14. B6 waits for `template-refresh` T2 (antfu 10, not before 2026-10-30).
+**Status:** approved with decisions 1–4 as recommended; next B12. B6 waits for `template-refresh` T2 (antfu 10, not before 2026-10-30).
 
 ## Decisions (approved)
 
@@ -53,9 +53,10 @@ Each item: implement, run `npm run lint`, `npm test` and the smoke runs it names
 - [x] **B10 Smoke script.** `scripts/smoke.ts`, `package.json` script, `.github/workflows/ci.yml` template job. Run it for npm and pnpm, plus npm `--browser-tests`.
   Visible after: `npm run smoke -- --pm pnpm` checks a new project locally.
   Needs you: push to see the CI run (at the end).
-- [ ] **B1 B14 Generator toolchain.** `package.json`, `.tool-versions`, `tsdown.config.ts` (delete `tsup.config.ts`), `tsconfig.json`, CI generator job. Check `node dist/index.js --version`, the shebang on line 1 of `dist/index.js`, and `npm pack --dry-run`.
+- [x] **B1 B14 Generator toolchain.** `package.json`, `.tool-versions`, `tsdown.config.ts` (delete `tsup.config.ts`), `tsconfig.json`, CI generator job. Check `node dist/index.js --version`, the shebang on line 1 of `dist/index.js`, and `npm pack --dry-run`.
   Visible after: nothing: same CLI, newer build tools.
   Needs you: nothing.
+  Decided during the run: tsconfig `target` goes from ES2022 to ES2023 and tsdown gets `fixedExtension: false`. Why: `toSorted` (already used in `src/`) failed `tsc` under ES2022, and Node 22+ supports ES2023; tsdown otherwise emits `dist/index.mjs`, which the `bin` path `dist/index.js` does not match. Alternative: keep ES2022 and avoid `toSorted`, or point `bin` at `.mjs`. Change: edit `tsconfig.json` / `tsdown.config.ts`.
 - [ ] **B12 Token check.** `src/scaffold.ts`, `src/index.ts`, tests switched to `scaffoldReplacements`.
   Visible after: nothing: a mistyped token now fails the tests.
   Needs you: nothing.
