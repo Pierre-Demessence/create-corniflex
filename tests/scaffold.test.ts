@@ -1,12 +1,12 @@
 import type { PackageManager } from '../src/scaffold.ts';
 import { strict as assert } from 'node:assert';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { test } from 'node:test';
 
 import { fileURLToPath } from 'node:url';
-import { addBrowserTests, browserTestReplacements, copyTemplate, describeFiles, existingTemplateFiles, isClassicYarn, isDirEmpty, PACKAGE_MANAGERS, packageManagerReplacements, pinPackageManager, slugify, toTitleCase, writeYarnConfig } from '../src/scaffold.ts';
+import { addBrowserTests, copyTemplate, describeFiles, existingTemplateFiles, isClassicYarn, isDirEmpty, isTextFile, PACKAGE_MANAGERS, pinPackageManager, scaffoldReplacements, slugify, toTitleCase, writeYarnConfig } from '../src/scaffold.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const templateDir = resolve(here, '../template');
@@ -67,10 +67,38 @@ test('describeFiles names up to ten files, then counts the rest', () => {
   assert.equal(describeFiles(files), 'f0, f1, f2, f3, f4, f5, f6, f7, f8, f9 and 3 more');
 });
 
+// Every folder that feeds a scaffold: the template and each overlay.
+const sourceDirs = [templateDir, ...readdirSync(resolve(here, '..'), { withFileTypes: true })
+  .filter(entry => entry.isDirectory() && entry.name.startsWith('template-'))
+  .map(entry => resolve(here, '..', entry.name))];
+
+function filesUnder(dir: string): string[] {
+  return readdirSync(dir, { recursive: true, withFileTypes: true })
+    .filter(entry => entry.isFile())
+    .map(entry => join(entry.parentPath, entry.name));
+}
+
+test('every {{TOKEN}} in the template sources is filled by scaffoldReplacements', () => {
+  assert.ok(sourceDirs.includes(browserTestsDir), 'overlays are found');
+  const known = Object.keys(scaffoldReplacements({ browserTests: true, pm: 'npm', projectName: 'app' }));
+  assert.deepEqual(known, Object.keys(scaffoldReplacements({ browserTests: false, pm: 'npm', projectName: 'app' })), 'the same tokens with and without overlays');
+
+  for (const sourceDir of sourceDirs) {
+    for (const file of filesUnder(sourceDir)) {
+      const tokens = readFileSync(file, 'utf8').match(/\{\{[^{}\s]*\}\}/g) ?? [];
+      if (tokens.length === 0)
+        continue;
+      assert.ok(isTextFile(file), `${file} holds tokens but copyTemplate does not fill its extension`);
+      for (const token of tokens)
+        assert.ok(known.includes(token.slice(2, -2)), `${token} in ${file} is not a scaffoldReplacements token`);
+    }
+  }
+});
+
 test('copyTemplate renders project files with replacements', () => {
   const dir = mkdtempSync(join(tmpdir(), 'corniflex-'));
   try {
-    copyTemplate(templateDir, dir, { replacements: { PROJECT_NAME: 'test-app', PROJECT_TITLE: 'Test App' } });
+    copyTemplate(templateDir, dir, { replacements: scaffoldReplacements({ browserTests: false, pm: 'npm', projectName: 'test-app' }) });
 
     const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) as { name: string };
     assert.equal(pkg.name, 'test-app');
@@ -145,7 +173,7 @@ test('copyTemplate ships a Renovate config', () => {
 test('package.json lists the refreshed tool versions and no import resolver', () => {
   const dir = mkdtempSync(join(tmpdir(), 'corniflex-'));
   try {
-    copyTemplate(templateDir, dir, { replacements: { PROJECT_NAME: 'test-app', ...packageManagerReplacements('npm') } });
+    copyTemplate(templateDir, dir, { replacements: scaffoldReplacements({ browserTests: false, pm: 'npm', projectName: 'test-app' }) });
 
     const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) as {
       devDependencies: Record<string, string>;
@@ -183,7 +211,7 @@ for (const pm of PACKAGE_MANAGERS) {
   test(`copyTemplate renders ${pm} commands everywhere`, () => {
     const dir = mkdtempSync(join(tmpdir(), 'corniflex-'));
     try {
-      copyTemplate(templateDir, dir, { replacements: { PROJECT_NAME: 'test-app', PROJECT_TITLE: 'Test App', ...packageManagerReplacements(pm, '10.0.0'), ...browserTestReplacements(pm, false) } });
+      copyTemplate(templateDir, dir, { replacements: scaffoldReplacements({ browserTests: false, pm, pmVersion: '10.0.0', projectName: 'test-app' }) });
 
       const files = ['README.md', 'AGENTS.md', join('.github', 'workflows', 'ci.yml')].map(file => readFileSync(join(dir, file), 'utf8'));
       for (const content of files) {
@@ -209,7 +237,7 @@ for (const pm of PACKAGE_MANAGERS) {
 test('browser tests are left out unless asked for', () => {
   const dir = mkdtempSync(join(tmpdir(), 'corniflex-'));
   try {
-    copyTemplate(templateDir, dir, { replacements: { PROJECT_NAME: 'test-app', PROJECT_TITLE: 'Test App', ...packageManagerReplacements('npm'), ...browserTestReplacements('npm', false) } });
+    copyTemplate(templateDir, dir, { replacements: scaffoldReplacements({ browserTests: false, pm: 'npm', projectName: 'test-app' }) });
 
     for (const file of ['vite.config.ts', 'package.json', 'brand.json', 'README.md', 'AGENTS.md', join('.github', 'workflows', 'ci.yml')])
       assert.ok(!readFileSync(join(dir, file), 'utf8').includes('{{'), `no token left unfilled in ${file}`);
@@ -229,7 +257,7 @@ for (const [pm, exec] of [['npm', 'npx'], ['pnpm', 'pnpm exec'], ['yarn', 'yarn'
   test(`--browser-tests adds a Chromium test project with ${pm}`, () => {
     const dir = mkdtempSync(join(tmpdir(), 'corniflex-'));
     try {
-      copyTemplate(templateDir, dir, { replacements: { PROJECT_NAME: 'test-app', PROJECT_TITLE: 'Test App', ...packageManagerReplacements(pm, '10.0.0'), ...browserTestReplacements(pm, true) } });
+      copyTemplate(templateDir, dir, { replacements: scaffoldReplacements({ browserTests: true, pm, pmVersion: '10.0.0', projectName: 'test-app' }) });
       addBrowserTests(browserTestsDir, dir);
 
       const viteConfig = readFileSync(join(dir, 'vite.config.ts'), 'utf8');
@@ -266,7 +294,7 @@ test('CI setup steps follow the package manager', () => {
   const setup = (pm: PackageManager, version?: string) => {
     const dir = mkdtempSync(join(tmpdir(), 'corniflex-'));
     try {
-      copyTemplate(templateDir, dir, { replacements: packageManagerReplacements(pm, version) });
+      copyTemplate(templateDir, dir, { replacements: scaffoldReplacements({ browserTests: false, pm, pmVersion: version, projectName: 'test-app' }) });
       return readFileSync(join(dir, '.github', 'workflows', 'ci.yml'), 'utf8');
     }
     finally {
@@ -301,7 +329,7 @@ test('writeYarnConfig selects the node_modules linker', () => {
 test('pinPackageManager adds the field after private', () => {
   const dir = mkdtempSync(join(tmpdir(), 'corniflex-'));
   try {
-    copyTemplate(templateDir, dir, { replacements: { PROJECT_NAME: 'test-app' } });
+    copyTemplate(templateDir, dir, { replacements: scaffoldReplacements({ browserTests: false, pm: 'pnpm', projectName: 'test-app' }) });
     pinPackageManager(dir, 'pnpm', '10.0.0');
 
     const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) as Record<string, unknown>;

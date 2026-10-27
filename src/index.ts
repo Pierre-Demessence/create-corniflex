@@ -10,7 +10,7 @@ import { cancel, confirm, intro, isCancel, log, outro, spinner, text } from '@cl
 
 import { Command, Option } from 'commander';
 import pkg from '../package.json' with { type: 'json' };
-import { addBrowserTests, browserInstallCommand, browserTestReplacements, copyTemplate, describeFiles, existingTemplateFiles, isClassicYarn, isDirEmpty, PACKAGE_MANAGERS, packageManagerReplacements, pinPackageManager, slugify, toTitleCase, writeYarnConfig } from './scaffold.ts';
+import { addBrowserTests, browserInstallCommand, copyTemplate, describeFiles, existingTemplateFiles, isClassicYarn, isDirEmpty, PACKAGE_MANAGERS, pinPackageManager, scaffoldReplacements, slugify, writeYarnConfig } from './scaffold.ts';
 
 interface CliOptions {
   browserTests?: boolean;
@@ -78,12 +78,7 @@ async function main(): Promise<void> {
   scaffolding.start('Scaffolding project');
   const pmVersion = readVersion(opts.pm);
   copyTemplate(templateDir, targetDir, {
-    replacements: {
-      PROJECT_NAME: projectName,
-      PROJECT_TITLE: toTitleCase(projectName),
-      ...packageManagerReplacements(opts.pm, pmVersion),
-      ...browserTestReplacements(opts.pm, opts.browserTests ?? false),
-    },
+    replacements: scaffoldReplacements({ browserTests: opts.browserTests ?? false, pm: opts.pm, pmVersion, projectName }),
   });
   if (opts.browserTests)
     addBrowserTests(browserTestsDir, targetDir);

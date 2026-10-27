@@ -15,7 +15,6 @@ that completes it.
 - B8 Type-aware lint rules are off: `template/eslint.config.ts` passes `typescript: true` without `tsconfigPath`. Needs B7, so every linted file belongs to a tsconfig.
 - B9 This repo has no `AGENTS.md`: the token rules (`applyReplacements` in `src/scaffold.ts`), `TEXT_EXTENSIONS`, `_`-prefixed dotfiles, `template/` being excluded from lint, and the scaffold CI job as the real check are only discoverable from the code.
 - B11 The template has no `.gitattributes`; with `core.autocrlf=true` on Windows, new projects get CRLF checkouts and mixed line endings from multi-line edits, which this repo's `.gitattributes` prevents here.
-- B12 `copyTemplate` in `src/scaffold.ts` silently leaves a misspelled token, or a token in a file whose extension is not in `TEXT_EXTENSIONS`, as a literal `{{X}}`; fail on any leftover token.
 - B15 `template/.vscode/settings.json` differs from `@antfu/eslint-config`'s recommended editor settings: it formats on save and has no `eslint.validate` list.
 
 ## Ideas

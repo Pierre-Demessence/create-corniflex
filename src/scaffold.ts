@@ -37,6 +37,13 @@ export const PACKAGE_MANAGERS = ['npm', 'pnpm', 'yarn'] as const;
 
 export type PackageManager = (typeof PACKAGE_MANAGERS)[number];
 
+export interface ScaffoldOptions {
+  browserTests: boolean;
+  pm: PackageManager;
+  pmVersion?: string;
+  projectName: string;
+}
+
 export interface CopyTemplateOptions {
   replacements?: Record<string, string>;
 }
@@ -58,6 +65,16 @@ export function toTitleCase(slug: string): string {
     .map(word => `${word.charAt(0).toUpperCase()}${word.slice(1)}`)
     .join(' ');
   return title || 'App';
+}
+
+// Every token the template sources may use, built from the CLI options.
+export function scaffoldReplacements(options: ScaffoldOptions): Record<string, string> {
+  return {
+    PROJECT_NAME: options.projectName,
+    PROJECT_TITLE: toTitleCase(options.projectName),
+    ...packageManagerReplacements(options.pm, options.pmVersion),
+    ...browserTestReplacements(options.pm, options.browserTests),
+  };
 }
 
 // `version` is the manager's installed version, when known. Yarn 1 spells the
@@ -192,10 +209,7 @@ export function copyTemplate(
     const destFile = join(targetDir, targetRelativePath(templateDir, sourceFile));
     mkdirSync(dirname(destFile), { recursive: true });
 
-    const isText
-      = TEXT_EXTENSIONS.has(extname(sourceFile))
-        || Object.hasOwn(DOTFILE_RENAMES, basename(sourceFile));
-    if (isText) {
+    if (isTextFile(sourceFile)) {
       const content = applyReplacements(readFileSync(sourceFile, 'utf8'), replacements);
       writeFileSync(destFile, content);
     }
@@ -203,6 +217,11 @@ export function copyTemplate(
       cpSync(sourceFile, destFile);
     }
   }
+}
+
+// Text files get their tokens filled; any other file is copied as it is.
+export function isTextFile(file: string): boolean {
+  return TEXT_EXTENSIONS.has(extname(file)) || Object.hasOwn(DOTFILE_RENAMES, basename(file));
 }
 
 function targetRelativePath(sourceDir: string, sourceFile: string): string {

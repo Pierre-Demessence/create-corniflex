@@ -2,7 +2,7 @@
 
 **Goal:** the generator works when an agent runs it, protects existing files, can be checked locally the way CI checks it, and makes React or Preact projects whose config files are type-checked and linted with type information.
 
-**Status:** approved with decisions 1–4 as recommended; next B12. B6 waits for `template-refresh` T2 (antfu 10, not before 2026-10-30).
+**Status:** approved with decisions 1–4 as recommended; next B11 B15 B16. B6 waits for `template-refresh` T2 (antfu 10, not before 2026-10-30).
 
 ## Decisions (approved)
 
@@ -57,7 +57,7 @@ Each item: implement, run `npm run lint`, `npm test` and the smoke runs it names
   Visible after: nothing: same CLI, newer build tools.
   Needs you: nothing.
   Decided during the run: tsconfig `target` goes from ES2022 to ES2023 and tsdown gets `fixedExtension: false`. Why: `toSorted` (already used in `src/`) failed `tsc` under ES2022, and Node 22+ supports ES2023; tsdown otherwise emits `dist/index.mjs`, which the `bin` path `dist/index.js` does not match. Alternative: keep ES2022 and avoid `toSorted`, or point `bin` at `.mjs`. Change: edit `tsconfig.json` / `tsdown.config.ts`.
-- [ ] **B12 Token check.** `src/scaffold.ts`, `src/index.ts`, tests switched to `scaffoldReplacements`.
+- [x] **B12 Token check.** `src/scaffold.ts`, `src/index.ts`, tests switched to `scaffoldReplacements`.
   Visible after: nothing: a mistyped token now fails the tests.
   Needs you: nothing.
 - [ ] **B11 B15 B16 Template files.** As in Design; smoke for npm; browser check of the scaffolded page in light and dark.
