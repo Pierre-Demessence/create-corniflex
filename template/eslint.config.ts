@@ -17,7 +17,7 @@ export default antfu(
     ignores: ['dist/**', 'coverage/**', 'docs/**'],
     markdown: false,
     type: 'app',
-    typescript: true,
+    typescript: { tsconfigPath: 'tsconfig.json' },
     stylistic: {
       indent: 2,
       quotes: 'single',

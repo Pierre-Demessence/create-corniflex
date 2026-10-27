@@ -2,7 +2,7 @@
 
 **Goal:** the generator works when an agent runs it, protects existing files, can be checked locally the way CI checks it, and makes React or Preact projects whose config files are type-checked and linted with type information.
 
-**Status:** approved with decisions 1–4 as recommended; next B7 B8. B6 waits for `template-refresh` T2 (antfu 10, not before 2026-10-30).
+**Status:** approved with decisions 1–4 as recommended; next B9. B6 waits for `template-refresh` T2 (antfu 10, not before 2026-10-30).
 
 ## Decisions (approved)
 
@@ -63,7 +63,7 @@ Each item: implement, run `npm run lint`, `npm test` and the smoke runs it names
 - [x] **B11 B15 B16 Template files.** As in Design; smoke for npm; browser check of the scaffolded page in light and dark.
   Visible after: new projects get LF line endings, quieter editor formatting and a page that follows the OS dark mode.
   Needs you: open a scaffolded project's page in both OS themes (at the end).
-- [ ] **B7 B8 Checked configs.** Template tsconfigs, `package.json`, `eslint.config.ts`, `AGENTS.md`, README, generator tests reading `tsconfig.json`; smoke for npm and npm `--browser-tests`; deliberate errors per criterion 9.
+- [x] **B7 B8 Checked configs.** Template tsconfigs, `package.json`, `eslint.config.ts`, `AGENTS.md`, README, generator tests reading `tsconfig.json`; smoke for npm and npm `--browser-tests`; deliberate errors per criterion 9.
   Visible after: a type error in `vite.config.ts` fails the build; lint catches un-awaited promises.
   Needs you: nothing.
 - [ ] **B9 Repo AGENTS.md.** As in Design.

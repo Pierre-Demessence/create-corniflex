@@ -5,7 +5,7 @@ Agent operating notes for **{{PROJECT_TITLE}}**: a Vite + TypeScript (strict) ap
 ## Commands
 
 - Dev server: `{{PM}} run dev`
-- Build: `{{PM}} run build` (runs `tsc --noEmit`, then `vite build`)
+- Build: `{{PM}} run build` (runs `tsc -b`, then `vite build`)
 - Lint: `{{PM}} run lint` / `{{PM}} run lint:fix`
 - Test: `{{PM}} test` / `{{PM}} run test:watch` / `{{PM}} run test:coverage`
 

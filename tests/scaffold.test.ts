@@ -127,8 +127,44 @@ test('copyTemplate drops obsolete files and settings and checks indexed access',
     const settings = JSON.parse(readFileSync(join(dir, '.vscode', 'settings.json'), 'utf8')) as Record<string, unknown>;
     assert.ok(!('eslint.useFlatConfig' in settings), 'flat config is the ESLint extension default');
 
-    const tsconfig = JSON.parse(readFileSync(join(dir, 'tsconfig.json'), 'utf8')) as { compilerOptions: Record<string, unknown> };
+    const tsconfig = JSON.parse(readFileSync(join(dir, 'tsconfig.app.json'), 'utf8')) as { compilerOptions: Record<string, unknown> };
     assert.equal(tsconfig.compilerOptions.noUncheckedIndexedAccess, true);
+  }
+  finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('copyTemplate type-checks the config files through a solution tsconfig', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'corniflex-'));
+  try {
+    copyTemplate(templateDir, dir, { replacements: scaffoldReplacements({ browserTests: false, pm: 'npm', projectName: 'test-app' }) });
+
+    const read = (file: string) => JSON.parse(readFileSync(join(dir, file), 'utf8')) as {
+      compilerOptions?: Record<string, unknown>;
+      files?: string[];
+      include?: string[];
+      references?: { path: string }[];
+    };
+    const root = read('tsconfig.json');
+    assert.deepEqual(root.files, []);
+    assert.deepEqual(root.references?.map(ref => ref.path), ['./tsconfig.app.json', './tsconfig.node.json']);
+
+    const app = read('tsconfig.app.json');
+    assert.deepEqual(app.include, ['src']);
+    assert.deepEqual(app.compilerOptions?.paths, { '@/*': ['./src/*'] });
+
+    const node = read('tsconfig.node.json');
+    assert.deepEqual(node.include, ['vite.config.ts', 'eslint.config.ts']);
+    assert.deepEqual(node.compilerOptions?.types, ['node']);
+    assert.equal(node.compilerOptions?.strict, true);
+    assert.ok(!node.compilerOptions?.paths, 'one paths entry, in tsconfig.app.json');
+
+    const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) as { devDependencies: Record<string, string>; scripts: Record<string, string> };
+    assert.equal(pkg.scripts.build, 'tsc -b && vite build');
+    assert.equal(pkg.devDependencies['@types/node'], '^24.19.2', 'matches .tool-versions');
+
+    assert.match(readFileSync(join(dir, 'eslint.config.ts'), 'utf8'), /typescript: \{ tsconfigPath: 'tsconfig\.json' \}/);
   }
   finally {
     rmSync(dir, { recursive: true, force: true });
