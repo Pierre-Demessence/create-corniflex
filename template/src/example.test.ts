@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { greeting } from './example';
+import { greeting } from '@/example';
 
 describe('greeting', () => {
   it('greets by name', () => {

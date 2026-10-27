@@ -30,6 +30,4 @@ Run lint, test and build before considering work done.
 
 ## Invariants
 
-- Keep the `@/*` alias in sync across `tsconfig.json`, `vite.config.ts` and
-  `vitest.config.ts`.
 - The app name comes from `brand.json`; never hard-code it in `index.html`.

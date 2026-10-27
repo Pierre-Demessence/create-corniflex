@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 
 const brand = JSON.parse(readFileSync(resolve(import.meta.dirname, 'brand.json'), 'utf8')) as { name: string };
 
@@ -12,8 +12,16 @@ export default defineConfig({
     },
   ],
   resolve: {
-    alias: [
-      { find: /^@\/(.*)$/, replacement: resolve(import.meta.dirname, 'src/$1') },
-    ],
+    // Resolves the `@/*` alias from tsconfig.json `paths`, the single source of truth.
+    tsconfigPaths: true,
+  },
+  test: {
+    environment: 'jsdom',
+    include: ['src/**/*.test.ts'],
+    coverage: {
+      exclude: ['src/**/*.test.ts', 'src/main.ts'],
+      include: ['src/**/*.ts'],
+      provider: 'v8',
+    },
   },
 });
