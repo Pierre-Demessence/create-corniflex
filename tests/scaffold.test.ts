@@ -85,6 +85,23 @@ test('copyTemplate scaffolds docs that follow the ID conventions', () => {
   }
 });
 
+test('copyTemplate ships a Renovate config', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'corniflex-'));
+  try {
+    copyTemplate(templateDir, dir);
+
+    const renovate = JSON.parse(readFileSync(join(dir, 'renovate.json'), 'utf8')) as {
+      minimumReleaseAge: string;
+      packageRules: { groupName: string }[];
+    };
+    assert.equal(renovate.minimumReleaseAge, '7 days', 'matches the npm release-age gate');
+    assert.deepEqual(renovate.packageRules.map(rule => rule.groupName), ['ESLint', 'Vitest']);
+  }
+  finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('package.json lists the refreshed tool versions and no import resolver', () => {
   const dir = mkdtempSync(join(tmpdir(), 'corniflex-'));
   try {
@@ -139,7 +156,9 @@ for (const pm of PACKAGE_MANAGERS) {
       const ci = files[2] ?? '';
       assert.ok(ci.includes(`cache: ${pm}`));
       assert.ok(ci.includes('node-version-file: .tool-versions'));
-      assert.equal(readFileSync(join(dir, '.tool-versions'), 'utf8').trim(), 'node 24');
+      // Renovate's asdf manager knows the tool only as `nodejs`; mise and
+      // setup-node accept both spellings.
+      assert.equal(readFileSync(join(dir, '.tool-versions'), 'utf8').trim(), 'nodejs 24');
     }
     finally {
       rmSync(dir, { recursive: true, force: true });

@@ -2,7 +2,7 @@
 
 **Goal:** a project made with `create-corniflex` starts on current tool versions, with less config to keep in sync, a CI that proves the template still works, and docs that follow the user's current rules.
 
-**Status:** decisions 1–3 approved as recommended; T1 and T3–T7 done; next T8 (T2 waits for 2026-10-30). Source: hand-off in `I:/Dev/AI/.agents/docs/plans/instructions-review.md`. Versions checked with `npm view` and `gh api` on 2026-10-27.
+**Status:** decisions 1–3 approved as recommended; T1 and T3–T8 done; next T9 (T2 waits for 2026-10-30). Source: hand-off in `I:/Dev/AI/.agents/docs/plans/instructions-review.md`. Versions checked with `npm view` and `gh api` on 2026-10-27.
 
 ## Verified versions
 
@@ -40,7 +40,7 @@ The user's npm config sets `min-release-age = 7`, so the newest installable rele
 - **ESLint:** `perfectionist/sort-objects` is removed (object key order is iteration order; `sort-imports` and `sort-interfaces` stay, with `id`/`name` first for interfaces). `eslint-plugin-import-x`, `eslint-import-resolver-typescript` and `import-x/no-unresolved` are removed: `tsc --noEmit` already checks imports, and typescript-eslint advises turning import resolution rules off for TypeScript. `AGENTS.md` loses the key-order and `no-unresolved` lines.
 - **Alias:** `resolve.tsconfigPaths: true` in `vite.config.ts` (Vite 8), which imports `defineConfig` from `vitest/config` and holds the `test` block; `vitest.config.ts` is deleted, and so is the `AGENTS.md` invariant about keeping three copies in sync.
 - **Package manager:** replacement tokens in the template (`{{PM}}`, run, install-in-CI commands) filled by `scaffold.ts` from `--pm`. CI uses `pnpm/action-setup` before setup-node for pnpm, and `corepack enable` for yarn.
-- **Pins:** `.tool-versions` with the Node major (`node 24`, to be checked against what mise and setup-node's `node-version-file` accept), and `packageManager` written at scaffold time from `<pm> --version` (omitted if the manager isn't installed). CI reads Node from `.tool-versions`.
+- **Pins:** `.tool-versions` with the Node major (`nodejs 24`: Renovate's asdf manager knows only `nodejs`, and mise and setup-node's `node-version-file` accept both spellings), and `packageManager` written at scaffold time from `<pm> --version` (omitted if the manager isn't installed). CI reads Node from `.tool-versions`.
 - **Docs:** the template's `docs/` follows `docs.instructions` (`B<n>` IDs, `Next ID:` line, `docs/research/` mentioned in `AGENTS.md`'s docs map). `.gitkeep` stays in `docs/plans/`.
 - **Failure modes:** an install that the release-age gate refuses (T2) is the signal to wait, not to loosen the range; `--pm` with an unavailable manager scaffolds without `packageManager` and says so.
 
@@ -69,7 +69,7 @@ Each item: edit, scaffold into a scratch folder and run install, lint, test, bui
 - [x] **T7 Template docs.** Design "Docs".
   Visible after: new projects' backlog uses `B<n>` and `Next ID:`.
   Needs you: nothing.
-- [ ] **T8 Keeping current.** Per decision 2: `renovate.json` (7-day delay, groups for ESLint and Vitest packages) or `.github/dependabot.yml`; a `.github/workflows/ci.yml` in this repo that builds the generator, scaffolds a project for each manager and runs its lint, test and build.
+- [x] **T8 Keeping current.** Per decision 2: `renovate.json` (7-day delay, groups for ESLint and Vitest packages) or `.github/dependabot.yml`; a `.github/workflows/ci.yml` in this repo that builds the generator, scaffolds a project for each manager and runs its lint, test and build.
   Visible after: update pull requests appear in new projects once the bot is installed; a break in the template turns this repo's CI red.
   Needs you: install the Renovate app on new repos (and on this one); push to see the CI run (no pushing by the agent).
 - [ ] **T9 Browser tests** (only if decision 1 is agreed). `--browser-tests` adds `@vitest/browser-playwright`, `playwright`, a second Vitest project for `*.browser.test.ts`, a sample layout test, `npx playwright install --with-deps chromium` in CI, and a line in `AGENTS.md`.

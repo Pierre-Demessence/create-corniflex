@@ -3,8 +3,9 @@
 Scaffold a new **Vite + TypeScript** project from a single command, pre-wired
 with the tooling used across these packages: Vite 8, TypeScript (strict),
 Vitest, `@antfu/eslint-config` (flat config + custom perfectionist sorting), a
-`@/` path alias, `brand.json` → `%APP_NAME%` HTML injection, and the standard
-`.vscode` / `.github` / `docs` / `AGENTS.md` scaffolding.
+`@/` path alias, `brand.json` → `%APP_NAME%` HTML injection, a Renovate config
+for dependency updates, and the standard `.vscode` / `.github` / `docs` /
+`AGENTS.md` scaffolding.
 
 ## Usage
 
@@ -28,6 +29,9 @@ npm run build
 npm link            # exposes the `create-corniflex` bin globally
 create-corniflex my-app
 ```
+
+CI scaffolds a project with each package manager and runs its install, lint,
+test and build, so a template change that breaks new projects fails the build.
 
 ### Options
 
